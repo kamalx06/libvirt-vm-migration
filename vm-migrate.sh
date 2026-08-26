@@ -87,156 +87,53 @@ fi
 ###############################################################################
 
 usage() {
-    local exit_code="${1:-1}"
+    local exit_code="${1:-0}"
 
     cat <<EOF
 
 $SCRIPT_NAME v$VERSION
+Safe libvirt/KVM VM migration and backup tool.
 
-Safe libvirt/KVM VM migration tool with external snapshot support.
+USAGE
+  $SCRIPT_NAME export [OPTIONS] <VM_NAME> <BACKUP_DIR>
+  $SCRIPT_NAME import [OPTIONS] <BACKUP_DIR>
+  $SCRIPT_NAME -h | --help
 
-USAGE:
+COMMANDS
+  export    Export a powered-off VM and its disk/snapshot data.
+  import    Restore a previously exported VM backup.
+  help      Show this help message.
 
+OPTIONS
+  --selinux     Restore SELinux contexts during import.
+  -h, --help    Show this help message.
+
+EXAMPLES
   Export:
-    sudo $SCRIPT_NAME export [OPTIONS] "VM_NAME" /path/to/backup
-
-  Import:
-    sudo $SCRIPT_NAME import [OPTIONS] /path/to/backup
-
-  Help:
-    $SCRIPT_NAME --help
-    $SCRIPT_NAME -h
-
-
-ACTIONS:
-
-  export
-        Export a shut-off libvirt VM and its external snapshot chain.
-
-  import
-        Import a previously exported VM backup.
-
-  help
-        Show this help menu.
-
-
-OPTIONS:
-
-  --selinux
-        Restore SELinux contexts on restored files.
-
-        SELinux relabeling is DISABLED by default.
-
-        If --selinux is specified but 'restorecon' is not installed,
-        the import will fail with an explanatory error.
-
-  -h, --help
-        Show this help menu.
-
-
-EXPORT:
-
-  The VM must be completely shut off before export.
-
-  Example:
-
     sudo $SCRIPT_NAME export "Windows 11" /mnt/backup/windows11
 
-
-IMPORT:
-
-  Example:
-
+  Import:
     sudo $SCRIPT_NAME import /mnt/backup/windows11
 
-  With SELinux relabeling:
-
+  Import with SELinux:
     sudo $SCRIPT_NAME import --selinux /mnt/backup/windows11
 
+NOTES
+  • VMs must be powered off before export.
+  • QCOW2 backing chains and snapshot metadata are preserved.
+  • Files are verified using SHA-256 checksums.
+  • Existing files are never overwritten if they differ.
+  • No snapshot merging, commit, rebase, blockpull, or blockcommit
+    operations are performed automatically.
+  • Imported VMs remain powered off.
 
-SAFETY:
-
-  The script does NOT automatically perform:
-
-    - qemu-img commit
-    - qemu-img rebase
-    - blockpull
-    - blockcommit
-    - snapshot merging
-    - snapshot deletion
-
-  Original absolute disk paths are preserved.
-
-  QCOW2 backing chains are preserved.
-
-  Files are verified using SHA-256.
-
-  Existing destination files are reused only when their
-  SHA-256 and size exactly match the backup.
-
-  Existing files that differ are NEVER overwritten automatically.
-
-
-SUPPORTED STORAGE:
-
-  File-backed disks are backed up automatically.
-
-  Storage-pool volumes are resolved using:
-
-    virsh vol-path
-
-  Block devices and unsupported network storage are rejected
-  when they represent real VM disks, because silently omitting
-  them would create an incomplete backup.
-
-
-SELINUX:
-
-  SELinux handling is optional and disabled by default.
-
-  Without --selinux:
-    No SELinux commands are executed.
-
-  With --selinux:
-    restorecon is used after files are restored.
-
-  This is useful when importing onto an SELinux-enabled host,
-  particularly when restoring disks below paths such as:
-
-    /var/lib/libvirt/images
-
-
-IMPORTANT:
-
-  The script preserves the original QCOW2 backing-file paths.
-
-  Therefore QCOW2 consistency/backing-chain checks are performed
-  after the files have been restored to their original paths.
-
-
-EXAMPLES:
-
-  Export:
-
-    sudo $SCRIPT_NAME export "Parrot 7.3" /mnt/backup/parrot-7.3
-
-  Import:
-
-    sudo $SCRIPT_NAME import /mnt/backup/parrot-7.3
-
-  Import with SELinux:
-
-    sudo $SCRIPT_NAME import --selinux /mnt/backup/parrot-7.3
-
-  Show help:
-
-    $SCRIPT_NAME --help
-
+For more information, see the project README.
 
 EOF
 
     exit "$exit_code"
 }
+
 
 ###############################################################################
 # VM information
