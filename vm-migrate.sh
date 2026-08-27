@@ -1375,3 +1375,12 @@ Run:
     esac
 
 done
+
+case "$ACTION" in
+    export)
+        export_vm "$@"
+        ;;
+    import)
+        import_vm "$@"
+        ;;
+esac
